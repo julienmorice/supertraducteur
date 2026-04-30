@@ -159,6 +159,7 @@ main {
   border-bottom: 1px solid var(--border);
   gap: 0.75rem;
   background: var(--blanc);
+  flex-wrap: wrap;
 }
 .lang-chip {
   display: flex;
@@ -176,14 +177,39 @@ main {
   border-color: var(--bleu-imt);
   color: #006f87;
 }
-.lang-chip.target {
+.lang-arrow {
+  font-size: 1.1rem;
+  color: var(--gris-texte);
+}
+/* Target language toggle */
+.lang-toggle {
+  display: flex;
+  gap: 0.4rem;
+}
+.lang-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.45rem 1rem;
+  border-radius: 20px;
+  border: 2px solid var(--border);
+  background: var(--gris-clair);
+  color: var(--gris-texte);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.lang-toggle-btn.active {
   background: var(--violet-light);
   border-color: var(--violet-imt);
   color: var(--violet-imt);
 }
-.lang-arrow {
-  font-size: 1.1rem;
-  color: var(--gris-texte);
+.lang-toggle-btn:not(.active):hover {
+  background: var(--bleu-light);
+  border-color: var(--bleu-imt);
+  color: #006f87;
 }
 
 /* Text panels */
@@ -400,7 +426,10 @@ footer {
     <div class="lang-bar">
       <div class="lang-chip source">🇫🇷 Français</div>
       <div class="lang-arrow">→</div>
-      <div class="lang-chip target">🇬🇧 Anglais</div>
+      <div class="lang-toggle">
+        <button class="lang-toggle-btn active" data-lang="English" data-label="🇬🇧 Anglais">🇬🇧 Anglais</button>
+        <button class="lang-toggle-btn" data-lang="Bulgarian" data-label="🇧🇬 Bulgare">🇧🇬 Bulgare</button>
+      </div>
     </div>
 
     <!-- Panneaux texte -->
@@ -464,6 +493,21 @@ const errorBanner   = document.getElementById('errorBanner');
 const errorMsg      = document.getElementById('errorMsg');
 
 let currentTranslation = '';
+let targetLang = 'English';
+
+// ── Sélection de la langue cible
+document.querySelectorAll('.lang-toggle-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.lang-toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    targetLang = btn.dataset.lang;
+    // Réinitialise la sortie si on change de langue
+    outputArea.textContent = 'La traduction apparaîtra ici.';
+    outputArea.className = 'panel-output placeholder-hint';
+    copyBtn.disabled = true;
+    currentTranslation = '';
+  });
+});
 
 // ── Mise à jour du compteur et des boutons
 sourceText.addEventListener('input', () => {
@@ -547,7 +591,7 @@ async function translate() {
         messages: [
           {
             role: 'system',
-            content: 'You are a professional French to English translator. Translate the user\'s text accurately and naturally. Output only the translation, no explanations, no extra text.'
+            content: `You are a professional French to ${targetLang} translator. Translate the user's text accurately and naturally. Output only the translation, no explanations, no extra text.`
           },
           {
             role: 'user',
